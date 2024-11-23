@@ -25,6 +25,19 @@ def collectSampleAccelerationZ():
 
 def setLED(activated):
     digital_write(4, activated)
+    
+    
+def oled_update(text):
+    oled_clear()
+    oled_print(text)
+    
+def signifyDataCollectionBegin():
+    setLED(True)
+    
+def signifyDataCollectionEnd():
+    setLED(False)
+    
+    
 
 def isButtonPressed():
     return digital_read(6)
@@ -53,29 +66,69 @@ sampleInterval = 0.01 # Interval in seconds between sample collection.
 
 # Delay is the delay before the start of data collection in seconds.
 def collectDataUntilButtonPress(delay):
+    if delay >= 5:
+        oled_update("See console...")
+        print("Data collection will begin when LED lights up...")
+    
+
+
     sleep(delay)
     startTime = time()
     
     data_dictX = {}
 
 
-    setLED(True)
+    signifyDataCollectionBegin()
     while not isButtonPressed():
         sleep(sampleInterval)
 
         data_dictX[time() - startTime] = collectSampleAccelerationX() * 9.81 # in m/s
 
-    setLED(False)
+    signifyDataCollectionEnd()
     return data_dictX
     
     
-def oled_update(text):
-    oled_clear()
-    oled_print(text)
+# Delay is the delay before the start of data collection in seconds.
+def collectDataWithTimer(delay, duration):
+    if delay >= 5:
+        oled_update("See console...")
+        print("Data collection will begin when LED lights up...")
+    
+    
+    sleep(delay)
+    startTime = time()
+    
+    data_dictX = {}
+
+
+    signifyDataCollectionBegin()
+    while not time() >= startTime + duration:
+        sleep(sampleInterval)
+
+        data_dictX[time() - startTime] = collectSampleAccelerationX() * 9.81 # in m/s
+
+    signifyDataCollectionEnd()
+    return data_dictX
     
     
     
     
+# Alloiw user to select a number between min and max using the dial, then return it
+def dialNumberInput(min, max):
+    selectedValue = math.floor(linearDialFunction(min, max))
+    lastSelectedValue = selectedValue * -1 # Should not be the same at first
+
+    while not isButtonPressed():
+        sleep(0.15)
+        selectedValue = math.floor(linearDialFunction(min, max))
+        
+        if selectedValue != lastSelectedValue:
+            oled_update(str(selectedValue))
+        lastSelectedValue = selectedValue
+        
+    return selectedValue
+
+
 
 
 # Set mode
@@ -122,16 +175,7 @@ sleep(2)
 oled_update("Choose delay...")
 sleep(2.5)
 
-delay = 1
-lastDelay = -99
-
-while not isButtonPressed():
-    sleep(0.15)
-    delay = math.ceil(linearDialFunction(1, 30))
-    
-    if delay != lastDelay:
-        oled_update(str(delay))
-    lastDelay = delay
+delay = dialNumberInput(1, 30)
     
         
 oled_update(str(delay) + " second delay.")
@@ -143,20 +187,28 @@ sleep(3)
 oled_update("Timer duration...")
 sleep(2.5)
 
-if mode == "timer":
-    duration = 5
-    lastDuration = -99
+acceleration = None # To be assigned in the following modes
 
-    while not isButtonPressed():
-        sleep(0.15)
-        duration = math.ceil(linearDialFunction(1, 60))
-        
-        if duration != lastDuration:
-            oled_update(str(duration))
-        lastDuration = duration
+if mode == "timer":
+    duration = dialNumberInput(5, 60)
         
     oled_update(str(duration) + " second timer.")
     sleep(3)
     
+    acceleration = collectDataWithTimer(delay, duration)
     
     
+    
+if mode == "button":
+    acceleration = collectDataUntilButtonPress(delay)
+    
+    
+    
+# Graphing
+oled_update("Data collection successful.")
+sleep(2.5)
+
+sampleCount = len(acceleration)
+
+plt.plot(acceleration.keys(), acceleration.values())
+plt.show()
