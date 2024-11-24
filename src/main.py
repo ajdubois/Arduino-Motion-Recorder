@@ -31,11 +31,16 @@ def oled_update(text):
     oled_clear()
     oled_print(text)
     
+def setBuzzer(num):
+    analog_write(2, num)
+    
 def signifyDataCollectionBegin():
     setLED(True)
+    setBuzzer(255)
     
 def signifyDataCollectionEnd():
     setLED(False)
+    setBuzzer(0)
     
     
 
@@ -80,7 +85,6 @@ def collectDataUntilButtonPress(delay):
 
     signifyDataCollectionBegin()
     while not isButtonPressed():
-        sleep(sampleInterval)
 
         data_dictX[time() - startTime] = collectSampleAccelerationX() * 9.81 # in m/s
 
@@ -103,7 +107,6 @@ def collectDataWithTimer(delay, duration):
 
     signifyDataCollectionBegin()
     while not time() >= startTime + duration:
-        sleep(sampleInterval)
 
         data_dictX[time() - startTime] = collectSampleAccelerationX() * 9.81 # in m/s
 
@@ -133,21 +136,20 @@ def dialNumberInput(min, max):
 
 # Set mode
 
+
 mode = "timer" # can be "timer" or "button".
+
+
+oled_update("Select desired mode.")
+sleep(4)
 
 if getRotaryDialValue() > maxAnalogValue / 2:
     mode = "timer"
 else:
     mode = "button"
 
-lastMode = mode # only update oled display when mode changes
- 
-
-
-oled_update("Select desired mode.")
-sleep(5)
-
 oled_update(mode)
+lastMode = mode
 
 while not isButtonPressed():
     sleep(0.5)
@@ -182,14 +184,13 @@ oled_update(str(delay) + " second delay.")
 sleep(3)
 
 
-# get timer
-
-oled_update("Timer duration...")
-sleep(2.5)
 
 acceleration = None # To be assigned in the following modes
 
 if mode == "timer":
+    oled_update("Timer duration...")
+    sleep(2.5)
+
     duration = dialNumberInput(5, 60)
         
     oled_update(str(duration) + " second timer.")
@@ -210,5 +211,66 @@ sleep(2.5)
 
 sampleCount = len(acceleration)
 
-plt.plot(acceleration.keys(), acceleration.values())
+# acceleration
+plt.subplot(131)
+plt.plot(acceleration.keys(), acceleration.values(), "r-")
+plt.xlabel('Time (s)')
+plt.ylabel('Acceleration (m/s/s)')
+
+
+
+# velocity
+
+
+# return integral of the provided dictionary
+def integral(dictionary):
+    lastKey = None
+    lastValue = None
+    
+    samplesProcessed = 0
+    
+    integral = {}
+    
+    
+    for key in dictionary.keys():
+        value = dictionary[key]
+        if samplesProcessed != 0:
+            rectangleArea = lastValue * (key - lastKey)
+            triangleArea = (value - lastValue) * (key - lastKey) * 0.5
+            
+            index = (key + lastKey) * 0.5
+            
+            integral[index] = rectangleArea + triangleArea
+            
+        samplesProcessed = samplesProcessed + 1
+        lastKey = key
+        lastValue = value
+        
+    return integral
+
+
+velocity = integral(acceleration)
+    
+
+
+plt.subplot(132)
+plt.plot(velocity.keys(), velocity.values(), "g-")
+plt.xlabel('Time (s)')
+plt.ylabel('Change in Velocity Due to Acceleration (m/s)')
+
+plt.title("Motion from acceleration (" + str(sampleCount) + " samples)")
+
+
+
+position = integral(velocity)
+    
+
+
+plt.subplot(133)
+plt.plot(position.keys(), position.values(), "b-")
+plt.xlabel('Time (s)')
+plt.ylabel('Change in Position Due to Acceleration (m)')
+
+
+
 plt.show()
