@@ -1,3 +1,7 @@
 in order to make using the dial easier for inputting numbers,
 i made a function which takes a min and max value
 which will be linearly interpolated between using the dial.
+
+i am using pyplot to make three different graphs for each direction
+as well as a fourth real group of graphs for the calculated real acceleration
+and velocity magnitudes.
