@@ -6,11 +6,18 @@ from engi1020.arduino.pressure import *
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import re
 
 
 maxAnalogValue = 1023
 
 
+
+axisText = input("Which axis would you like to record? ").lower()
+
+xAxisEnabled = bool(re.search(r"x", axisText))
+yAxisEnabled = bool(re.search(r"y", axisText))
+zAxisEnabled = bool(re.search(r"z", axisText))
         
 
 def collectSampleAccelerationX():
@@ -47,13 +54,6 @@ def signifyDataCollectionEnd():
 def isButtonPressed():
     return digital_read(6)
     
-xAxisEnabled = True
-yAxisEnabled = False
-zAxisEnabled = False
-
-def getAxisCount():
-    return xAxisEnabled + yAxisEnabled + zAxisEnabled
-    
 
 def getRotaryDialValue():
     return analog_read(0)
@@ -70,48 +70,43 @@ sampleInterval = 0.01 # Interval in seconds between sample collection.
 
 
 # Delay is the delay before the start of data collection in seconds.
-def collectDataUntilButtonPress(delay):
-    if delay >= 5:
-        oled_update("See console...")
-        print("Data collection will begin when LED lights up...")
-    
-
-
-    sleep(delay)
+def collectDataUntilButtonPress():
     startTime = time()
     
     data_dictX = {}
+    data_dictY = {}
+    data_dictZ = {}
 
 
     signifyDataCollectionBegin()
     while not isButtonPressed():
 
         data_dictX[time() - startTime] = collectSampleAccelerationX() * 9.81 # in m/s
+        data_dictY[time() - startTime] = collectSampleAccelerationY() * 9.81 # in m/s
+        data_dictZ[time() - startTime] = collectSampleAccelerationZ() * 9.81 # in m/s
 
     signifyDataCollectionEnd()
-    return data_dictX
+    return [data_dictX, data_dictY, data_dictZ]
     
     
 # Delay is the delay before the start of data collection in seconds.
-def collectDataWithTimer(delay, duration):
-    if delay >= 5:
-        oled_update("See console...")
-        print("Data collection will begin when LED lights up...")
-    
-    
-    sleep(delay)
+def collectDataWithTimer(duration):
     startTime = time()
     
     data_dictX = {}
+    data_dictY = {}
+    data_dictZ = {}
 
 
     signifyDataCollectionBegin()
     while not time() >= startTime + duration:
 
         data_dictX[time() - startTime] = collectSampleAccelerationX() * 9.81 # in m/s
+        data_dictY[time() - startTime] = collectSampleAccelerationY() * 9.81 # in m/s
+        data_dictZ[time() - startTime] = collectSampleAccelerationZ() * 9.81 # in m/s
 
     signifyDataCollectionEnd()
-    return data_dictX
+    return [data_dictX, data_dictY, data_dictZ]
     
     
     
@@ -132,6 +127,13 @@ def dialNumberInput(min, max):
     return selectedValue
 
 
+def delayForSeconds(seconds):
+    if delay > 0:
+        oled_update(str(seconds) + "s delay...")
+        sleep(seconds)
+    else:
+        oled_update("No delay; starting.")
+        sleep(1.5)
 
 
 # Set mode
@@ -140,7 +142,7 @@ def dialNumberInput(min, max):
 mode = "timer" # can be "timer" or "button".
 
 
-oled_update("Select desired mode.")
+oled_update("Select mode.")
 sleep(4)
 
 if getRotaryDialValue() > maxAnalogValue / 2:
@@ -150,6 +152,7 @@ else:
 
 oled_update(mode)
 lastMode = mode
+
 
 while not isButtonPressed():
     sleep(0.5)
@@ -175,17 +178,70 @@ sleep(2)
 
 
 oled_update("Choose delay...")
-sleep(2.5)
+sleep(2)
 
-delay = dialNumberInput(1, 30)
+delay = dialNumberInput(0, 15)
     
         
-oled_update(str(delay) + " second delay.")
-sleep(3)
+delayForSeconds(delay)
 
 
 
-acceleration = None # To be assigned in the following modes
+
+
+
+
+def sign(num):
+    return math.copysign(1, num)
+
+# return integral of the provided dictionary
+def integral(dictionary):
+    lastKey = None
+    lastValue = None
+    
+    samplesProcessed = 0
+    
+    areaSum = 0
+    
+    integral = {}
+    
+    
+    for key in dictionary.keys():
+        value = dictionary[key]
+        if samplesProcessed != 0:
+            if sign(value) == sign(lastValue):
+                rectangleArea = lastValue * (key - lastKey)
+                triangleArea = (value - lastValue) * (key - lastKey) * 0.5
+            
+                index = (key + lastKey) * 0.5
+                
+                areaSum = areaSum + rectangleArea + triangleArea
+            
+                integral[index] = areaSum
+            else:
+                area = (key - lastKey)*(value + lastValue)/4
+            
+                index = (key + lastKey) * 0.5
+                
+                areaSum = areaSum + area
+                
+                integral[index] = areaSum
+            
+            
+        samplesProcessed = samplesProcessed + 1
+        lastKey = key
+        lastValue = value
+        
+    return integral
+    
+    
+    
+    
+    
+
+accelerationX = None # To be assigned in the following modes
+accelerationY = None # To be assigned in the following modes
+accelerationZ = None # To be assigned in the following modes
 
 if mode == "timer":
     oled_update("Timer duration...")
@@ -196,80 +252,174 @@ if mode == "timer":
     oled_update(str(duration) + " second timer.")
     sleep(3)
     
-    acceleration = collectDataWithTimer(delay, duration)
+    accelerations = collectDataWithTimer(duration)
+    accelerationX = accelerations[0]
+    accelerationY = accelerations[1]
+    accelerationZ = accelerations[2]
+    
+    accelerationX, accelerationY, accelerationZ = collectDataWithTimer(duration)
     
     
     
 if mode == "button":
-    acceleration = collectDataUntilButtonPress(delay)
+    accelerations = collectDataUntilButtonPress()
+    accelerationX = accelerations[0]
+    accelerationY = accelerations[1]
+    accelerationZ = accelerations[2]
     
-    
+
+
+# intergration
+
+velocityX = integral(accelerationX)
+velocityY = integral(accelerationY)
+velocityZ = integral(accelerationZ)
+
+positionX = integral(velocityX)
+positionY = integral(velocityY)
+positionZ = integral(velocityZ)
+
+
+
     
 # Graphing
 oled_update("Data collection successful.")
 sleep(2.5)
 
-sampleCount = len(acceleration)
-
-# acceleration
-plt.subplot(131)
-plt.plot(acceleration.keys(), acceleration.values(), "r-")
-plt.xlabel('Time (s)')
-plt.ylabel('Acceleration (m/s/s)')
 
 
+axisGroups = 0
 
-# velocity
-
-
-# return integral of the provided dictionary
-def integral(dictionary):
-    lastKey = None
-    lastValue = None
-    
-    samplesProcessed = 0
-    
-    integral = {}
+if xAxisEnabled:
+    axisGroups = axisGroups + 1
+if yAxisEnabled:
+    axisGroups = axisGroups + 1
+if zAxisEnabled:
+    axisGroups = axisGroups + 1
+if axisGroups > 1:
+    axisGroups = axisGroups + 1 # absolute motion
     
     
-    for key in dictionary.keys():
-        value = dictionary[key]
-        if samplesProcessed != 0:
-            rectangleArea = lastValue * (key - lastKey)
-            triangleArea = (value - lastValue) * (key - lastKey) * 0.5
-            
-            index = (key + lastKey) * 0.5
-            
-            integral[index] = rectangleArea + triangleArea
-            
-        samplesProcessed = samplesProcessed + 1
-        lastKey = key
-        lastValue = value
+fig, ax = plt.subplots(axisGroups, 3)
+
+rowsUsed = 0
+
+if xAxisEnabled:
+    ax[rowsUsed, 0].plot(accelerationX.keys(), accelerationX.values(), "r-")
+    ax[rowsUsed, 0].set_xlabel("Time (s)")
+    ax[rowsUsed, 0].set_ylabel("Acceleration (m/s/s)")
+    
+    ax[rowsUsed, 1].plot(velocityX.keys(), velocityX.values(), "g-")
+    ax[rowsUsed, 1].set_xlabel("Time (s)")
+    ax[rowsUsed, 1].set_ylabel("Velocity from acceleration (m/s)")
+    ax[rowsUsed, 1].set_title("X axis")
+    
+    ax[rowsUsed, 2].plot(positionX.keys(), positionX.values(), "b-")
+    ax[rowsUsed, 2].set_xlabel("Time (s)")
+    ax[rowsUsed, 2].set_ylabel("Position from acceleration (m)")
+    
+    rowsUsed = rowsUsed + 1
+    
+if yAxisEnabled:
+    ax[rowsUsed, 0].plot(accelerationY.keys(), accelerationY.values(), "r-")
+    ax[rowsUsed, 0].set_xlabel("Time (s)")
+    ax[rowsUsed, 0].set_ylabel("Acceleration (m/s/s)")
+    
+    ax[rowsUsed, 1].plot(velocityY.keys(), velocityY.values(), "g-")
+    ax[rowsUsed, 1].set_xlabel("Time (s)")
+    ax[rowsUsed, 1].set_ylabel("Velocity from acceleration (m/s)")
+    ax[rowsUsed, 1].set_title("Y axis")
+    
+    ax[rowsUsed, 2].plot(positionY.keys(), positionY.values(), "b-")
+    ax[rowsUsed, 2].set_xlabel("Time (s)")
+    ax[rowsUsed, 2].set_ylabel("Position from acceleration (m)")
+    
+    rowsUsed = rowsUsed + 1
+    
+if zAxisEnabled:
+    ax[rowsUsed, 0].plot(accelerationZ.keys(), accelerationZ.values(), "r-")
+    ax[rowsUsed, 0].set_xlabel("Time (s)")
+    ax[rowsUsed, 0].set_ylabel("Acceleration (m/s/s)")
+    
+    ax[rowsUsed, 1].plot(velocityZ.keys(), velocityZ.values(), "g-")
+    ax[rowsUsed, 1].set_xlabel("Time (s)")
+    ax[rowsUsed, 1].set_ylabel("Velocity from acceleration (m/s)")
+    ax[rowsUsed, 1].set_title("Z axis")
+    
+    ax[rowsUsed, 2].plot(positionZ.keys(), positionZ.values(), "b-")
+    ax[rowsUsed, 2].set_xlabel("Time (s)")
+    ax[rowsUsed, 2].set_ylabel("Position from acceleration (m)")
+    
+    rowsUsed = rowsUsed + 1
+    
+
+def closestKey(key, dict):
+    closest = None
+    
+    for k in dict.keys():
+        if closest == None:
+            closest = k
+        else:
+            if abs(closest - key) > abs(k - key):
+                closest = k
+                
+    return closest
+    
+    
+    
+
+    
+def pythagoreanMerge(dict1, dict2):
+    dict3 = dict1.copy()
+    
+    for k in dict3.keys():
+        v = dict3[k]
+        ov = dict2[closestKey(k, dict2)]
         
-    return integral
+        nv = math.sqrt(v**2 + ov**2)
+        dict3[k] = nv
+        
+    return dict3
+        
+        
 
+absoluteAcceleration = None
+if axisGroups > 1:
 
-velocity = integral(acceleration)
+    if xAxisEnabled:
+        absoluteAcceleration = accelerationX.copy()
+        if yAxisEnabled:
+            absoluteAcceleration = pythagoreanMerge(absoluteAcceleration, accelerationY)
+        if zAxisEnabled:
+            absoluteAcceleration = pythagoreanMerge(absoluteAcceleration, accelerationZ)
+            
+    elif yAxisEnabled:
+        absoluteAcceleration = accelerationY.copy()
+        if zAxisEnabled:
+            absoluteAcceleration = pythagoreanMerge(absoluteAcceleration, accelerationZ)
     
-
-
-plt.subplot(132)
-plt.plot(velocity.keys(), velocity.values(), "g-")
-plt.xlabel('Time (s)')
-plt.ylabel('Change in Velocity Due to Acceleration (m/s)')
-
-plt.title("Motion from acceleration (" + str(sampleCount) + " samples)")
-
-
-
-position = integral(velocity)
+    else:
+        absoluteAcceleration = accelerationZ.copy()
+        
+        
+    absoluteVelocity = integral(absoluteAcceleration)
     
+    
+    
+    ax[rowsUsed, 0].plot(absoluteAcceleration.keys(), absoluteAcceleration.values(), "r-")
+    
+    ax[rowsUsed, 1].plot(absoluteVelocity.keys(), absoluteVelocity.values(), "g-")
+    
+    rowsUsed = rowsUsed + 1
+    
+            
 
 
-plt.subplot(133)
-plt.plot(position.keys(), position.values(), "b-")
-plt.xlabel('Time (s)')
-plt.ylabel('Change in Position Due to Acceleration (m)')
+
+
+
+sampleCount = len(accelerationX)
+
 
 
 
