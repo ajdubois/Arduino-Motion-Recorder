@@ -25,6 +25,8 @@ if yAxisEnabled:
 zAxisEnabled = bool(re.search(r"z", axisText))
 if zAxisEnabled:
     print("Z axis enabled.")
+    
+
         
 
 def collectSampleAccelerationX():
@@ -56,6 +58,59 @@ def signifyDataCollectionEnd():
     setLED(False)
     setBuzzer(0)
     
+    
+    
+oled_update("Calibrating...") # This is important for registering the arduino before calibration,it is not just to look cool.
+    
+
+# calibration
+
+print("keep the arduino still while it calibrates.")
+
+zeroTime = 3.5  
+
+print("This will take " + str(zeroTime) + " seconds.")
+
+
+startTime = time()
+
+xSampleSum = 0
+ySampleSum = 0
+zSampleSum = 0
+
+sampleCount = 0
+
+print("\nCalibrating...")
+signifyDataCollectionBegin()
+while time() - startTime < zeroTime:
+    xSampleSum = xSampleSum + collectSampleAccelerationX()
+    ySampleSum = ySampleSum + collectSampleAccelerationY()
+    zSampleSum = zSampleSum + collectSampleAccelerationZ()
+    sampleCount = sampleCount + 1
+    
+    
+ 
+
+signifyDataCollectionEnd()
+xZero = xSampleSum / sampleCount
+yZero = ySampleSum / sampleCount
+zZero = zSampleSum / sampleCount
+
+
+def collectSampleAccelerationX():
+    return three_axis_get_accelX()# - xZero
+    
+def collectSampleAccelerationY():
+    return three_axis_get_accelY()# - yZero
+    
+def collectSampleAccelerationZ():
+    return three_axis_get_accelZ() - zZero
+
+
+print("Calibration complete.")
+
+
+
     
 
 def isButtonPressed():

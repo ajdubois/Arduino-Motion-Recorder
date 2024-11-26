@@ -5,3 +5,14 @@ which will be linearly interpolated between using the dial.
 i am using pyplot to make three different graphs for each direction
 as well as a fourth real group of graphs for the calculated real acceleration
 and velocity magnitudes.
+
+
+im making the ranges for delay and timer more sensible:
+delay: 0-15 seconds
+timer: 5-60 seconds
+
+
+
+A huge problem i'm having is getting realistic results. The acceleration is all over the place
+and doesnt seem very accurate at all. I guess thats because its only meant to detect when the arduino is moving quickly.
+When I leave the arduino stationary it will sometimes say that it had moved meters away.
