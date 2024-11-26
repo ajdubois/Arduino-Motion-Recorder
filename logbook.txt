@@ -16,3 +16,7 @@ timer: 5-60 seconds
 A huge problem i'm having is getting realistic results. The acceleration is all over the place
 and doesnt seem very accurate at all. I guess thats because its only meant to detect when the arduino is moving quickly.
 When I leave the arduino stationary it will sometimes say that it had moved meters away.
+
+After looking it up, the lowest possible range of the accelerometer is +/-2g, which explains this behaviour.
+With this level of sensitivity the graph this program will make can only be useful if the motion you are
+observing involves accelerations greater than 2g, the arduino cant really tell whether its at rest or moving slightly.

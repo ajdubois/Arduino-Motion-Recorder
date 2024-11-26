@@ -26,6 +26,27 @@ zAxisEnabled = bool(re.search(r"z", axisText))
 if zAxisEnabled:
     print("Z axis enabled.")
     
+    
+accelerationEnabled = bool(re.search(r"a", axisText))
+
+velocityEnabled = bool(re.search(r"v", axisText))
+
+positionEnabled = bool(re.search(r"p", axisText))
+
+if not accelerationEnabled and not velocityEnabled and not positionEnabled: # defaults
+    accelerationEnabled = True
+    velocityEnabled = True
+    
+
+if not accelerationEnabled:
+    print("Acceleration disabled.")
+if not velocityEnabled:
+    print("Velocity disabled.")
+if positionEnabled:
+    print("Position enabled.")
+    
+    
+    
 
         
 
@@ -362,99 +383,112 @@ if axisGroups > 1:
     axisGroups = axisGroups + 1 # absolute motion
     
     
-fig, ax = plt.subplots(axisGroups, 3)
+fig = None
+ax = None
+if positionEnabled:
+    fig, ax = plt.subplots(axisGroups, 3)
+else:
+    fig, ax = plt.subplots(axisGroups, 2)
+
+
 
 rowsUsed = 0
 
 
 if axisGroups > 1:
     if xAxisEnabled:
-        ax[rowsUsed, 0].plot(accelerationX.keys(), accelerationX.values(), "r-")
-        ax[rowsUsed, 0].set_xlabel("Time (s)")
-        ax[rowsUsed, 0].set_ylabel("Acceleration (m/s/s)")
-        
-        ax[rowsUsed, 1].plot(velocityX.keys(), velocityX.values(), "g-")
-        ax[rowsUsed, 1].set_xlabel("Time (s)")
-        ax[rowsUsed, 1].set_ylabel("Velocity from acceleration (m/s)")
-        ax[rowsUsed, 1].set_title("X axis")
-        
-        ax[rowsUsed, 2].plot(positionX.keys(), positionX.values(), "b-")
-        ax[rowsUsed, 2].set_xlabel("Time (s)")
-        ax[rowsUsed, 2].set_ylabel("Position from acceleration (m)")
+        if accelerationEnabled:
+            ax[rowsUsed, 0].plot(accelerationX.keys(), accelerationX.values(), "r-")
+            ax[rowsUsed, 0].set_xlabel("Time (s)")
+            ax[rowsUsed, 0].set_ylabel("Acceleration (m/s/s)")
+        if velocityEnabled:
+            ax[rowsUsed, 1].plot(velocityX.keys(), velocityX.values(), "g-")
+            ax[rowsUsed, 1].set_xlabel("Time (s)")
+            ax[rowsUsed, 1].set_ylabel("Velocity from acceleration (m/s)")
+            ax[rowsUsed, 1].set_title("X axis")
+        if positionEnabled:
+            ax[rowsUsed, 2].plot(positionX.keys(), positionX.values(), "b-")
+            ax[rowsUsed, 2].set_xlabel("Time (s)")
+            ax[rowsUsed, 2].set_ylabel("Position from acceleration (m)")
         
         rowsUsed = rowsUsed + 1
         
     if yAxisEnabled:
-        ax[rowsUsed, 0].plot(accelerationY.keys(), accelerationY.values(), "r-")
-        ax[rowsUsed, 0].set_xlabel("Time (s)")
-        ax[rowsUsed, 0].set_ylabel("Acceleration (m/s/s)")
-        
-        ax[rowsUsed, 1].plot(velocityY.keys(), velocityY.values(), "g-")
-        ax[rowsUsed, 1].set_xlabel("Time (s)")
-        ax[rowsUsed, 1].set_ylabel("Velocity from acceleration (m/s)")
-        ax[rowsUsed, 1].set_title("Y axis")
-        
-        ax[rowsUsed, 2].plot(positionY.keys(), positionY.values(), "b-")
-        ax[rowsUsed, 2].set_xlabel("Time (s)")
-        ax[rowsUsed, 2].set_ylabel("Position from acceleration (m)")
+        if accelerationEnabled:
+            ax[rowsUsed, 0].plot(accelerationY.keys(), accelerationY.values(), "r-")
+            ax[rowsUsed, 0].set_xlabel("Time (s)")
+            ax[rowsUsed, 0].set_ylabel("Acceleration (m/s/s)")
+        if velocityEnabled:
+            ax[rowsUsed, 1].plot(velocityY.keys(), velocityY.values(), "g-")
+            ax[rowsUsed, 1].set_xlabel("Time (s)")
+            ax[rowsUsed, 1].set_ylabel("Velocity from acceleration (m/s)")
+            ax[rowsUsed, 1].set_title("Y axis")
+        if positionEnabled:
+            ax[rowsUsed, 2].plot(positionY.keys(), positionY.values(), "b-")
+            ax[rowsUsed, 2].set_xlabel("Time (s)")
+            ax[rowsUsed, 2].set_ylabel("Position from acceleration (m)")
         
         rowsUsed = rowsUsed + 1
         
     if zAxisEnabled:
-        ax[rowsUsed, 0].plot(accelerationZ.keys(), accelerationZ.values(), "r-")
-        ax[rowsUsed, 0].set_xlabel("Time (s)")
-        ax[rowsUsed, 0].set_ylabel("Acceleration (m/s/s)")
-        
-        ax[rowsUsed, 1].plot(velocityZ.keys(), velocityZ.values(), "g-")
-        ax[rowsUsed, 1].set_xlabel("Time (s)")
-        ax[rowsUsed, 1].set_ylabel("Velocity from acceleration (m/s)")
-        ax[rowsUsed, 1].set_title("Z axis")
-        
-        ax[rowsUsed, 2].plot(positionZ.keys(), positionZ.values(), "b-")
-        ax[rowsUsed, 2].set_xlabel("Time (s)")
-        ax[rowsUsed, 2].set_ylabel("Position from acceleration (m)")
+        if accelerationEnabled:
+            ax[rowsUsed, 0].plot(accelerationZ.keys(), accelerationZ.values(), "r-")
+            ax[rowsUsed, 0].set_xlabel("Time (s)")
+            ax[rowsUsed, 0].set_ylabel("Acceleration (m/s/s)")
+        if velocityEnabled:
+            ax[rowsUsed, 1].plot(velocityZ.keys(), velocityZ.values(), "g-")
+            ax[rowsUsed, 1].set_xlabel("Time (s)")
+            ax[rowsUsed, 1].set_ylabel("Velocity from acceleration (m/s)")
+            ax[rowsUsed, 1].set_title("Z axis")
+        if positionEnabled:
+            ax[rowsUsed, 2].plot(positionZ.keys(), positionZ.values(), "b-")
+            ax[rowsUsed, 2].set_xlabel("Time (s)")
+            ax[rowsUsed, 2].set_ylabel("Position from acceleration (m)")
         
         rowsUsed = rowsUsed + 1
         
 else:
     if xAxisEnabled:
-        ax[0].plot(accelerationX.keys(), accelerationX.values(), "r-")
-        ax[0].set_xlabel("Time (s)")
-        ax[0].set_ylabel("Acceleration (m/s/s)")
-        
-        ax[1].plot(velocityX.keys(), velocityX.values(), "g-")
-        ax[1].set_xlabel("Time (s)")
-        ax[1].set_ylabel("Velocity from acceleration (m/s)")
-        
-        ax[2].plot(positionX.keys(), positionX.values(), "b-")
-        ax[2].set_xlabel("Time (s)")
-        ax[2].set_ylabel("Position from acceleration (m)")
+        if accelerationEnabled:
+            ax[0].plot(accelerationX.keys(), accelerationX.values(), "r-")
+            ax[0].set_xlabel("Time (s)")
+            ax[0].set_ylabel("Acceleration (m/s/s)")
+        if velocityEnabled:
+            ax[1].plot(velocityX.keys(), velocityX.values(), "g-")
+            ax[1].set_xlabel("Time (s)")
+            ax[1].set_ylabel("Velocity from acceleration (m/s)")
+        if positionEnabled:
+            ax[2].plot(positionX.keys(), positionX.values(), "b-")
+            ax[2].set_xlabel("Time (s)")
+            ax[2].set_ylabel("Position from acceleration (m)")
         
     if yAxisEnabled:
-        ax[0].plot(accelerationY.keys(), accelerationY.values(), "r-")
-        ax[0].set_xlabel("Time (s)")
-        ax[0].set_ylabel("Acceleration (m/s/s)")
-        
-        ax[1].plot(velocityY.keys(), velocityY.values(), "g-")
-        ax[1].set_xlabel("Time (s)")
-        ax[1].set_ylabel("Velocity from acceleration (m/s)")
-        
-        ax[2].plot(positionY.keys(), positionY.values(), "b-")
-        ax[2].set_xlabel("Time (s)")
-        ax[2].set_ylabel("Position from acceleration (m)")
+        if accelerationEnabled:
+            ax[0].plot(accelerationY.keys(), accelerationY.values(), "r-")
+            ax[0].set_xlabel("Time (s)")
+            ax[0].set_ylabel("Acceleration (m/s/s)")
+        if velocityEnabled:
+            ax[1].plot(velocityY.keys(), velocityY.values(), "g-")
+            ax[1].set_xlabel("Time (s)")
+            ax[1].set_ylabel("Velocity from acceleration (m/s)")
+        if positionEnabled:
+            ax[2].plot(positionY.keys(), positionY.values(), "b-")
+            ax[2].set_xlabel("Time (s)")
+            ax[2].set_ylabel("Position from acceleration (m)")
         
     if zAxisEnabled:
-        ax[0].plot(accelerationZ.keys(), accelerationZ.values(), "r-")
-        ax[0].set_xlabel("Time (s)")
-        ax[0].set_ylabel("Acceleration (m/s/s)")
-        
-        ax[1].plot(velocityZ.keys(), velocityZ.values(), "g-")
-        ax[1].set_xlabel("Time (s)")
-        ax[1].set_ylabel("Velocity from acceleration (m/s)")
-        
-        ax[2].plot(positionZ.keys(), positionZ.values(), "b-")
-        ax[2].set_xlabel("Time (s)")
-        ax[2].set_ylabel("Position from acceleration (m)")
+        if accelerationEnabled:
+            ax[0].plot(accelerationZ.keys(), accelerationZ.values(), "r-")
+            ax[0].set_xlabel("Time (s)")
+            ax[0].set_ylabel("Acceleration (m/s/s)")
+        if velocityEnabled:
+            ax[1].plot(velocityZ.keys(), velocityZ.values(), "g-")
+            ax[1].set_xlabel("Time (s)")
+            ax[1].set_ylabel("Velocity from acceleration (m/s)")
+        if positionEnabled:
+            ax[2].plot(positionZ.keys(), positionZ.values(), "b-")
+            ax[2].set_xlabel("Time (s)")
+            ax[2].set_ylabel("Position from acceleration (m)")
     
 
 def closestKey(key, dict):
@@ -511,8 +545,13 @@ if axisGroups > 1:
     
     
     ax[rowsUsed, 0].plot(absoluteAcceleration.keys(), absoluteAcceleration.values(), "r-")
+    ax[rowsUsed, 0].set_xlabel("Time (s)")
+    ax[rowsUsed, 0].set_ylabel("Acceleration (m/s/s)")
     
     ax[rowsUsed, 1].plot(absoluteVelocity.keys(), absoluteVelocity.values(), "g-")
+    ax[rowsUsed, 0].set_xlabel("Time (s)")
+    ax[rowsUsed, 0].set_ylabel("Velocity (m/s)")
+    ax[rowsUsed, 1].set_title("Magnitudinal")
     
     rowsUsed = rowsUsed + 1
     
