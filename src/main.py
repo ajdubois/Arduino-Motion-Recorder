@@ -541,6 +541,7 @@ if axisGroups > 1:
         
         
     absoluteVelocity = integral(absoluteAcceleration)
+    absolutePosition = integral(absoluteVelocity)
     
     
     
@@ -549,9 +550,14 @@ if axisGroups > 1:
     ax[rowsUsed, 0].set_ylabel("Acceleration (m/s/s)")
     
     ax[rowsUsed, 1].plot(absoluteVelocity.keys(), absoluteVelocity.values(), "g-")
-    ax[rowsUsed, 0].set_xlabel("Time (s)")
-    ax[rowsUsed, 0].set_ylabel("Velocity (m/s)")
+    ax[rowsUsed, 1].set_xlabel("Time (s)")
+    ax[rowsUsed, 1].set_ylabel("Velocity (m/s)")
     ax[rowsUsed, 1].set_title("Magnitudinal")
+    
+    if positionEnabled:
+        ax[rowsUsed, 2].plot(absolutePosition.keys(), absolutePosition.values(), "b-")
+        ax[rowsUsed, 2].set_xlabel("Time (s)")
+        ax[rowsUsed, 2].set_ylabel("Distance (m)")
     
     rowsUsed = rowsUsed + 1
     
