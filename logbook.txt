@@ -20,3 +20,6 @@ When I leave the arduino stationary it will sometimes say that it had moved mete
 After looking it up, the lowest possible range of the accelerometer is +/-2g, which explains this behaviour.
 With this level of sensitivity the graph this program will make can only be useful if the motion you are
 observing involves accelerations greater than 2g, the arduino cant really tell whether its at rest or moving slightly.
+
+
+For some reason thonny does not work correctly if i try to plot keys and values with matplotlib so I had to change them to lists.
