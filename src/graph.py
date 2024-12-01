@@ -10,46 +10,9 @@ import pandas as pd
 def sign(num):
     return math.copysign(1, num)
 
-# return integral of the provided dictionary
-def integral(dictionary):
-    lastKey = None
-    lastValue = None
-    
-    samplesProcessed = 0
-    
-    areaSum = 0
-    
-    integral = {}
-    
-    
-    for key in dictionary.keys():
-        value = dictionary[key]
-        if samplesProcessed != 0:
-            if sign(value) == sign(lastValue):
-                rectangleArea = lastValue * (key - lastKey)
-                triangleArea = (value - lastValue) * (key - lastKey) * 0.5
-            
-                index = (key + lastKey) * 0.5
-                
-                areaSum = areaSum + rectangleArea + triangleArea
-            
-                integral[index] = areaSum
-            else:
-                area = (key - lastKey)*(value + lastValue)/4
-            
-                index = (key + lastKey) * 0.5
-                
-                areaSum = areaSum + area
-                
-                integral[index] = areaSum
-            
-            
-        samplesProcessed = samplesProcessed + 1
-        lastKey = key
-        lastValue = value
-        
-    return integral
-    
+
+
+# return integral of the provided dictionary    
 def integral(dictionary):
     lastKey = None
     lastValue = None
