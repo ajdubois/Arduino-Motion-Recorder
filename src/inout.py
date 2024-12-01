@@ -33,7 +33,7 @@ def linearDialFunction(min, max):
     
     
 
-# Alloiw user to select a number between min and max using the dial, then return it
+# Allow user to select a number between min and max using the dial, then return it
 def dialNumberInput(min, max):
     selectedValue = math.floor(linearDialFunction(min, max))
     lastSelectedValue = math.pi # arbitrary number
