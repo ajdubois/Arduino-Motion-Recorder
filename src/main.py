@@ -28,6 +28,16 @@ if zAxisEnabled:
     print("Z axis enabled.")
     
     
+    
+    
+    
+if not xAxisEnabled and not yAxisEnabled and not zAxisEnabled:
+    raise Exception("No axes enabled.")
+    
+    
+    
+    
+    
 accelerationEnabled = bool(re.search(r"a", axisText))
 
 velocityEnabled = bool(re.search(r"v", axisText))
