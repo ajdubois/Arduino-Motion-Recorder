@@ -50,6 +50,57 @@ def integral(dictionary):
         
     return integral
     
+def integral(dictionary):
+    lastKey = None
+    lastValue = None
+    
+    samplesProcessed = 0
+    
+    areaSum = 0
+    
+    integral = {}
+    
+    
+    for key in dictionary.keys():
+        value = dictionary[key]
+        if samplesProcessed != 0:
+            if sign(value) == sign(lastValue):
+                rectangleArea = lastValue * (key - lastKey)
+                triangleArea = (value - lastValue) * (key - lastKey) * 0.5
+                
+                area = rectangleArea + triangleArea
+                
+                if sign(area) != sign(value):
+                    area = area * -1
+                
+                areaSum = areaSum + area
+            
+                integral[key] = areaSum
+            else:
+                xIntercept = -1 * lastValue*(key-lastKey)/(value-lastValue) + lastKey
+                
+                xInterceptScaled = xIntercept - lastKey
+                
+                totalWidth = key - lastKey
+                secondTriangleWidth = totalWidth - xInterceptScaled
+                firstTriangleWidth = totalWidth - secondTriangleWidth
+            
+                areaFirstTriangle = firstTriangleWidth*lastValue/2
+                areaSecondTriangle = secondTriangleWidth*value/2
+                
+                areaSum = areaSum + areaFirstTriangle + areaSecondTriangle
+                
+                integral[key] = areaSum
+        else:
+            integral[key] = 0
+            
+            
+        samplesProcessed = samplesProcessed + 1
+        lastKey = key
+        lastValue = value
+        
+    return integral
+    
     
     
     
